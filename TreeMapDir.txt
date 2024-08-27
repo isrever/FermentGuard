@@ -1,0 +1,19 @@
+Ferment Guard Project
+├── config/
+│   └── config.js            // Configuration settings for the application
+├── controllers/
+│   ├── dataController.js     // Handles data serving and clearing operations
+│   ├── emailController.js    // Manages email configuration and sending emails
+│   ├── ispindelController.js // Processes iSpindel data and handles data logging
+│   ├── pageController.js     // Serves the main HTML page
+│   └── tokenController.js    // Manages tokens, backup, and restoration of data
+├── utils/
+│   ├── fileUtils.js          // Utility functions for file operations
+│   ├── logger.js             // Logger utility for standardized logging
+│   └── emailUtils.js         // Utility functions for email operations
+├── public/
+│   └── index.html            // Main HTML page served by the server
+├── routes/
+│   └── routes.js             // Routes incoming requests to appropriate controllers
+├── server.js                 // Main server file that starts the HTTP server
+└── backupController.js       // Handles backup and restore operations

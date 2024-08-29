@@ -13,7 +13,6 @@ Ferment Guard is a Node.js application designed to monitor and manage data from 
 Before you begin, ensure you have the following installed on your system:
 
 - [Node.js](https://nodejs.org/) (v12 or later)
-- [npm](https://www.npmjs.com/get-npm) (comes with Node.js)
 
 ## Installation
 

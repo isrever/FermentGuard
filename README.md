@@ -19,7 +19,7 @@ Before you begin, ensure you have the following installed on your system:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/ferment-guard.git
+   git clone https://github.com/isrever/FermentGuard.git
    cd ferment-guard
 2. navigate to the folder in command prompt and run "npm install" to install the dependcies.
 3. run "npm start" to start the app and load a browser to "127.0.0.1:8080" 

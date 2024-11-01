@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { logYellow, logRedError } = require('../utils/logger');
 const config = require('../config/config');
-const { readJSONFile, writeJSONFile } = require('../utils/fileUtils');
+const { readJSONFile, writeJSONFile, ensureFileExists } = require('../utils/fileUtils');
+const crypto = require('crypto');
 
 const tokensFilePath = path.join(config.dataDir, 'ispindel_tokens.json');
 

@@ -1,4 +1,4 @@
-# Ferment Guard 0.8.0-alpha ( Still under development )
+# Ferment Guard 0.8.2-alpha ( Still under development )
 
 Ferment Guard is a Node.js application designed to monitor and manage data from iSpindel devices. The application can generate, regenerate and delete tokens, log, backup, and restore data and send email alerts based on specific gravity (SG) and battery level thresholds. The app also features a web-based interface for displaying the data.
 ## Features

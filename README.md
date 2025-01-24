@@ -19,5 +19,5 @@ npm start
 
 4. Access the dashboard at http://localhost:8080
 
-License
+License:
 This project is licensed under the MIT License.

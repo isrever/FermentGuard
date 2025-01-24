@@ -1,4 +1,32 @@
-const fs = require('fs');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/tokencontroller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/tokencontroller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const fs = require('fs');
 const path = require('path');
 const {
     logYellow,
@@ -74,9 +102,9 @@ const saveTokens = (tokens) => {
  * @param {number|string} offset - The offset value to associate with the token (parsed as a float).
  *
  * @returns {Object} - An object containing the status of the operation:
- *   - `{ status: 'ok', message: 'Updated <name>' }` if the update is successful.
- *   - `{ status: 'error', message: 'Token <name> not found' }` if the token does not exist.
- *   - `{ status: 'error', message: 'Failed to update token: <error>' }` if an error occurs during the update.
+ *   - `{ status: 'ok', message: 'Updated &lt;name>' }` if the update is successful.
+ *   - `{ status: 'error', message: 'Token &lt;name> not found' }` if the token does not exist.
+ *   - `{ status: 'error', message: 'Failed to update token: &lt;error>' }` if an error occurs during the update.
  */
 const updateTokenFormula = (name, formula, offset) => {
     try {
@@ -147,7 +175,7 @@ const createTokenDirectoriesAndFiles = (tokenName) => {
  * @param {string} [color='#000000'] - The color associated with the token, defaulting to black if not provided.
  *
  * @returns {Object} - An object indicating the status of the operation:
- *   - `{ status: 'ok', token: <newTokenValue> }` if the token is successfully added.
+ *   - `{ status: 'ok', token: &lt;newTokenValue> }` if the token is successfully added.
  *   - `{ status: 'error', message: 'Token name already exists' }` if the token name is already in use.
  */
 const addToken = (name, color) => {
@@ -190,7 +218,7 @@ const addToken = (name, color) => {
  * @param {string} name - The name of the token to regenerate.
  *
  * @returns {Object} - An object indicating the status of the operation:
- *   - `{ status: 'ok', token: <newTokenValue> }` if the token is successfully regenerated.
+ *   - `{ status: 'ok', token: &lt;newTokenValue> }` if the token is successfully regenerated.
  *   - `{ status: 'error', message: 'Token not found' }` if the token name does not exist.
  */
 const regenerateToken = (name) => {
@@ -224,7 +252,7 @@ const regenerateToken = (name) => {
  * @param {string} name - The name of the token to delete.
  *
  * @returns {Object} - An object indicating the status of the operation:
- *   - `{ status: 'ok', name: <name> }` if the token is successfully deleted.
+ *   - `{ status: 'ok', name: &lt;name> }` if the token is successfully deleted.
  *   - `{ status: 'error', message: 'Token not found' }` if the token name does not exist.
  */
 const deleteToken = (name) => {
@@ -334,4 +362,26 @@ module.exports = {
     loadTokens,
     handleTokenManagement,
     updateTokenFormula
-};
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addFirewallRulesLinux">addFirewallRulesLinux</a></li><li><a href="global.html#addFirewallRulesWindows">addFirewallRulesWindows</a></li><li><a href="global.html#addToken">addToken</a></li><li><a href="global.html#checkFirewallRuleExistsLinux">checkFirewallRuleExistsLinux</a></li><li><a href="global.html#checkFirewallRuleExistsWindows">checkFirewallRuleExistsWindows</a></li><li><a href="global.html#clearData">clearData</a></li><li><a href="global.html#configureFirewall">configureFirewall</a></li><li><a href="global.html#createBackup">createBackup</a></li><li><a href="global.html#createDirectoryIfNotExists">createDirectoryIfNotExists</a></li><li><a href="global.html#createTokenDirectoriesAndFiles">createTokenDirectoriesAndFiles</a></li><li><a href="global.html#deleteToken">deleteToken</a></li><li><a href="global.html#ensureFileExists">ensureFileExists</a></li><li><a href="global.html#getIsAdmin">getIsAdmin</a></li><li><a href="global.html#handleEmailConfig">handleEmailConfig</a></li><li><a href="global.html#handleIspindelPost">handleIspindelPost</a></li><li><a href="global.html#handleTokenManagement">handleTokenManagement</a></li><li><a href="global.html#handleTokenRequest">handleTokenRequest</a></li><li><a href="global.html#initializeEmailTransporter">initializeEmailTransporter</a></li><li><a href="global.html#loadEmailConfig">loadEmailConfig</a></li><li><a href="global.html#loadLastSGValues">loadLastSGValues</a></li><li><a href="global.html#loadTokens">loadTokens</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#logRedError">logRedError</a></li><li><a href="global.html#logYellow">logYellow</a></li><li><a href="global.html#promptUser">promptUser</a></li><li><a href="global.html#readJSONFile">readJSONFile</a></li><li><a href="global.html#regenerateToken">regenerateToken</a></li><li><a href="global.html#requestHandler">requestHandler</a></li><li><a href="global.html#restoreBackup">restoreBackup</a></li><li><a href="global.html#saveEmailConfig">saveEmailConfig</a></li><li><a href="global.html#saveLastSGValues">saveLastSGValues</a></li><li><a href="global.html#saveTokens">saveTokens</a></li><li><a href="global.html#sendEmailAlert">sendEmailAlert</a></li><li><a href="global.html#serveData">serveData</a></li><li><a href="global.html#servePage">servePage</a></li><li><a href="global.html#updateTokenFormula">updateTokenFormula</a></li><li><a href="global.html#writeJSONFile">writeJSONFile</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Jan 24 2025 01:24:27 GMT+0000 (Greenwich Mean Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

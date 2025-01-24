@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FermentGuard Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/4.3.1/gridstack.min.css" />
+
     <style>
         /* Basic styles for the body and container elements */
         body {
@@ -53,7 +54,20 @@
             font-size: 16px; /* Font size */
             margin-right: 10px; /* Space between buttons */
         }
-
+        .savePolynomialButton {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #007bff; /* Light blue background */
+    color: white; /* White text */
+    font-size: 16px;
+    margin-right: 10px;
+    transition: background-color 0.3s; /* Smooth transition for the hover effect */
+}
+.savePolynomialButton:hover {
+    background-color: #0056b3; /* Darker blue when hovered */
+}
         /* Light mode styles */
         body.light-mode {
             background-color: #f4f4f4; /* Light gray background */
@@ -204,6 +218,14 @@
 </head>
 
 <body class="light-mode">
+
+    <!-- Defer script loading to maintain execution order -->
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/luxon"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/4.3.1/gridstack.all.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <h1>FermentGuard</h1>
     <div id="loadingIndicator" style="display: none;">Loading...</div>
 
@@ -241,11 +263,6 @@
                         <label for="gmailPass">Gmail Password</label>
                         <input type="password" id="gmailPass" name="gmailPass" required>
                     </div>
-                    <div class="form-group">
-                        <label>Alerts</label>
-                        <input type="checkbox" id="sgAlert" name="sgAlert" checked> Low SG Alert<br>
-                        <input type="checkbox" id="batteryAlert" name="batteryAlert" checked> Low Battery Alert
-                    </div>
                     <button type="submit" id="SaveEmailConfig" class="dropbtn">Save Email Configuration</button>
                 </form>
             </div>
@@ -255,8 +272,8 @@
         <div class="dropdown">
             <button class="dropbtn">About</button>
             <div class="dropdown-content">
-                <a href="#">Version: FermentGuard 0.8.2-alpha</a>
-                <a href="#">Build Number: 0111240153</a>
+                <a href="#">Version: FermentGuard 0.9.0-alpha</a>
+                <a href="#">Build Number: 2401250127</a>
                 <a href="https://github.com/isrever/FermentGuard" target="_blank">GitHub Repository</a>
             </div>
         </div>
@@ -300,9 +317,12 @@
                 </div>
             </div>
         </div>
-            <div id="chartContainer">
-        <canvas id="dataChart"></canvas>
-    </div>
+<div id="chartContainer">
+    <canvas id="sgChart" style="width: 100%; height: 300px;"></canvas>
+    <canvas id="tiltChart" style="width: 100%; height: 300px;"></canvas>
+    <canvas id="temperatureChart" style="width: 100%; height: 300px;"></canvas>
+    <canvas id="batteryChart" style="width: 100%; height: 300px;"></canvas>
+</div>
     </div>
 
     <!-- Include Chart.js -->
@@ -316,6 +336,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
+
+window.sgChart = null;
+window.tiltChart = null;
+window.temperatureChart = null;
+window.batteryChart = null;
 
 // Define ANSI escape codes for colors
 const colors = {
@@ -357,10 +382,68 @@ const logRedError = (message) => {
     console.error(`${colors.fgRed}%s${colors.reset}`, message);
 };
 
+function generateChartOptions(yAxisLabel, axisColor, bgColor) {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                type: 'time',
+                time: {
+                    tooltipFormat: 'MMM d, yyyy, HH:mm:ss',
+                    unit: 'minute',
+                    displayFormats: {
+                        minute: 'MMM d, HH:mm',
+                        hour: 'MMM d, HH:mm',
+                        day: 'MMM d',
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Date & Time',
+                    color: axisColor,
+                },
+                ticks: {
+                    color: axisColor,
+                    source: 'data',
+                    autoSkip: true,
+                    maxRotation: 90,
+                    minRotation: 90,
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: yAxisLabel,
+                    color: axisColor,
+                },
+                ticks: {
+                    color: axisColor,
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: axisColor,
+                }
+            }
+        },
+        backgroundColor: bgColor,
+    };
+}
+
         // Initialize GridStack for moveable widgets
         document.addEventListener('DOMContentLoaded', function () {
-            const grid = GridStack.init();
+            if (typeof GridStack !== 'undefined') {
+                const grid = GridStack.init();
+                console.log("GridStack initialized");
+            } else {
+                console.error("GridStack is not defined");
+            }
         });
+
+
 
         async function fetchEmailConfig() {
             try {
@@ -372,8 +455,6 @@ const logRedError = (message) => {
                 document.getElementById('recipientEmail').value = config.recipientEmail || '';
                 document.getElementById('gmailUser').value = config.gmailUser || '';
                 document.getElementById('gmailPass').value = config.gmailPass || '';
-                document.getElementById('sgAlert').checked = config.sgAlert !== undefined ? config.sgAlert : false;
-                document.getElementById('batteryAlert').checked = config.batteryAlert !== undefined ? config.batteryAlert : false;
             } catch (error) {
                 logRedError('Failed to fetch email configuration:', error);
             }
@@ -386,8 +467,6 @@ const logRedError = (message) => {
                 recipientEmail: document.getElementById('recipientEmail').value,
                 gmailUser: document.getElementById('gmailUser').value,
                 gmailPass: document.getElementById('gmailPass').value,
-                sgAlert: document.getElementById('sgAlert').checked,
-                batteryAlert: document.getElementById('batteryAlert').checked,
             };
 
             try {
@@ -412,7 +491,7 @@ const logRedError = (message) => {
         }
 
         function updateWidgets(latestSG, latestTilt, latestTemperature, latestBattery) {
-            document.getElementById('sgWidget').textContent = latestSG ? latestSG.toFixed(3) : 'N/A';
+            document.getElementById('sgWidget').textContent = latestSG ? latestSG.toFixed(3)  : 'N/A';
             document.getElementById('tiltWidget').textContent = latestTilt ? `Tilt: ${latestTilt.toFixed(2)}°` : 'Tilt: N/A';
             document.getElementById('platoWidget').textContent = latestSG ? `Plato: ${calculatePlatoFromSG(latestSG).toFixed(2)}` : 'Plato: N/A';
             document.getElementById('temperatureWidget').textContent = latestTemperature ? `${latestTemperature.toFixed(1)} °C` : 'N/A';
@@ -425,20 +504,29 @@ const logRedError = (message) => {
         // This will store the colors assigned to each token
         let tokenColors = {};
 
-        async function fetchData() {
-            showLoading(true);
-            try {
-                const response = await fetch('/data');
-                if (!response.ok) throw new Error('Network response was not ok');
-                return await response.json();
-            } catch (error) {
-                logRedError('Fetch data error:', error);
-                alert('Failed to fetch data. Please try again later.');
-                return {}; // Return an empty object or appropriate fallback
-            } finally {
-                showLoading(false);
+async function fetchData() {
+    try {
+        const response = await fetch('/data');
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const data = await response.json();
+
+        // Enhance data by adding the offset if it's missing
+        Object.entries(data).forEach(([tokenName, tokenData]) => {
+            if (typeof tokenData.offset === 'undefined') {
+                // Try to find existing input value or default to 0
+                const offsetInput = document.querySelector(`input.customOffsetInput[data-name="${tokenName}"]`);
+                tokenData.offset = offsetInput ? parseFloat(offsetInput.value) || 0 : 0;
             }
-        }
+        });
+
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch data:', error);
+        return {}; // Return empty object on failure
+    }
+}
+
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
@@ -461,7 +549,6 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
     // Return the percentage, ensuring it's within 0-100% and rounded to 2 decimal places
     return Math.min(Math.max(percentage, 0), 100).toFixed(2);
 }
-
         function calculateSG(tilt, formula) {
             try {
                 const sanitizedFormula = formula.replace(/tilt/g, tilt);
@@ -472,296 +559,294 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
             }
         }
 
-        async function renderChart() {
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            const axisColor = isDarkMode ? '#f4f4f4' : '#333';
-            const bgColor = isDarkMode ? '#333' : '#fff';
+// Function to render the SG chart
+function renderSGChart(data, axisColor, bgColor) {
+    // Only destroy if sgChart is already defined as a Chart instance
+    if (window.sgChart instanceof Chart) {
+        window.sgChart.destroy();
+    }
 
-            const data = await fetchData();
-            logYellow('Data received for chart:', data);
+    const sgData = [];
+for (const [tokenName, tokenData] of Object.entries(data)) {
+    const sgValues = [];
+    const timestamps = [];
+        console.log('Processed tokenData:', tokenData); // Debug to confirm offset is appended
+    tokenData.angleData?.trim().split('\n').forEach(row => {
+        const [timestamp, angle] = row.split(', ');
+        const parsedTimestamp = new Date(timestamp);
+        timestamps.push(parsedTimestamp);
 
-            const ctx = document.getElementById('dataChart').getContext('2d');
+        const formula = tokenData.formula || "0.7452906386258465 + 0.01641104769215384 * tilt - 0.0003261402578710187 * tilt * tilt + 0.0000022994662242554533 * tilt * tilt * tilt";
+        const sg = calculateSG(angle, formula) + tokenData.offset; // Use tokenData.offset here
 
-            const datasets = [];
+        sgValues.push({ x: parsedTimestamp, y: sg });
+    });
+
+    sgData.push({
+        label: `${tokenName} - SG`,
+        data: sgValues,
+        borderColor: tokenColors[tokenName] || '#000000',
+        backgroundColor: tokenColors[tokenName] || '#000000',
+        borderWidth: 2,
+        fill: false,
+        borderDash: [5, 5],
+    });
+}
+
+    // Initialize the chart instance
+    window.sgChart = new Chart(document.getElementById('sgChart').getContext('2d'), {
+        type: 'line',
+        data: { datasets: sgData },
+        options: generateChartOptions('Specific Gravity', axisColor, bgColor)
+    });
+}
+
+// Function to render the Tilt chart
+function renderTiltChart(data, axisColor, bgColor) {
+    if (window.tiltChart) window.tiltChart.destroy();
+
+    const tiltData = [];
+    for (const [tokenName, tokenData] of Object.entries(data)) {
+        const tiltValues = [];
+        const timestamps = [];
+
+        tokenData.angleData?.trim().split('\n').forEach(row => {
+            const [timestamp, angle] = row.split(', ');
+            const parsedTimestamp = new Date(timestamp);
+            timestamps.push(parsedTimestamp);
+            tiltValues.push({ x: parsedTimestamp, y: parseFloat(angle) });
+        });
+
+        tiltData.push({
+            label: `${tokenName} - Tilt`,
+            data: tiltValues,
+            borderColor: tokenColors[tokenName] || '#000000',
+            backgroundColor: tokenColors[tokenName] || '#000000',
+            borderWidth: 2,
+            fill: false,
+        });
+    }
+
+    window.tiltChart = new Chart(document.getElementById('tiltChart').getContext('2d'), {
+        type: 'line',
+        data: { datasets: tiltData },
+        options: generateChartOptions('Tilt Angle', axisColor, bgColor)
+    });
+}
+
+// Function to render the Temperature chart
+function renderTemperatureChart(data, axisColor, bgColor) {
+    if (window.temperatureChart) window.temperatureChart.destroy();
+
+    const temperatureData = [];
+    for (const [tokenName, tokenData] of Object.entries(data)) {
+        const tempValues = [];
+        const timestamps = [];
+
+        tokenData.temperatureData?.trim().split('\n').forEach(row => {
+            const [timestamp, temp] = row.split(', ');
+            const parsedTimestamp = new Date(timestamp);
+            timestamps.push(parsedTimestamp);
+            tempValues.push({ x: parsedTimestamp, y: parseFloat(temp) });
+        });
+
+        temperatureData.push({
+            label: `${tokenName} - Temperature`,
+            data: tempValues,
+            borderColor: tokenColors[tokenName] || '#000000',
+            backgroundColor: tokenColors[tokenName] || '#000000',
+            borderWidth: 2,
+            fill: false,
+        });
+    }
+
+    window.temperatureChart = new Chart(document.getElementById('temperatureChart').getContext('2d'), {
+        type: 'line',
+        data: { datasets: temperatureData },
+        options: generateChartOptions('Temperature (°C)', axisColor, bgColor)
+    });
+}
+
+// Function to render the Battery chart
+function renderBatteryChart(data, axisColor, bgColor) {
+    if (window.batteryChart) window.batteryChart.destroy();
+
+    const batteryData = [];
+    for (const [tokenName, tokenData] of Object.entries(data)) {
+        const batteryValues = [];
+        const timestamps = [];
+
+        tokenData.batteryData?.trim().split('\n').forEach(row => {
+            const [timestamp, voltage] = row.split(', ');
+            const parsedTimestamp = new Date(timestamp);
+            timestamps.push(parsedTimestamp);
+            batteryValues.push({ x: parsedTimestamp, y: parseFloat(voltage) });
+        });
+
+        batteryData.push({
+            label: `${tokenName} - Battery Voltage`,
+            data: batteryValues,
+            borderColor: tokenColors[tokenName] || '#000000',
+            backgroundColor: tokenColors[tokenName] || '#000000',
+            borderWidth: 2,
+            fill: false,
+        });
+    }
+
+    window.batteryChart = new Chart(document.getElementById('batteryChart').getContext('2d'), {
+        type: 'line',
+        data: { datasets: batteryData },
+        options: generateChartOptions('Battery Voltage', axisColor, bgColor)
+    });
+}
+
+async function renderCharts() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const axisColor = isDarkMode ? '#f4f4f4' : '#333';
+    const bgColor = isDarkMode ? '#333' : '#fff';
+
+    const data = await fetchData();
+    if (!data || Object.keys(data).length === 0) {
+        console.error("No data available to render charts.");
+        return;
+    }
+
+    renderSGChart(data, axisColor, bgColor);
+    renderTiltChart(data, axisColor, bgColor);
+    renderTemperatureChart(data, axisColor, bgColor);
+    renderBatteryChart(data, axisColor, bgColor);
+
+                // Extract latest values for each parameter
             let latestSG = null;
             let latestTilt = null;
             let latestTemperature = null;
-            let latestBatteryPercentage = null;
-            let sgTimestamps = [];
-            let sgs = [];
-
+            let latestBattery = null;
             for (const [tokenName, tokenData] of Object.entries(data)) {
-                const timestamps = [];
-                const angles = [];
-                const temperatures = [];
-                const batteries = [];
-                let sgValues = [];
+                // Assuming last entries represent the latest values
+                const sgValues = tokenData.angleData?.trim().split('\n');
+                const tempValues = tokenData.temperatureData?.trim().split('\n');
+                const batteryValues = tokenData.batteryData?.trim().split('\n');
 
-                tokenData.angleData?.trim().split('\n').forEach(row => {
-                    const [timestamp, angle] = row.split(', ');
-                    const parsedTimestamp = new Date(timestamp);
-                    timestamps.push(parsedTimestamp);
-                    angles.push(parseFloat(angle));
-
-                    const formula = tokenData.formula || "0.7452906386258465 + 0.01641104769215384 * tilt - 0.0003261402578710187 * tilt * tilt + 0.0000022994662242554533 * tilt * tilt * tilt";
-                    const sg = calculateSG(angle, formula);
-                    sgValues.push(sg);
-                });
-
-                tokenData.temperatureData?.trim().split('\n').forEach(row => {
-                    const [, temperature] = row.split(', ');
-                    temperatures.push(parseFloat(temperature));
-                });
-
-                tokenData.batteryData?.trim().split('\n').forEach(row => {
-                    const [, voltage] = row.split(', ');
-                    batteries.push(parseFloat(voltage));
-                    latestBatteryPercentage = calculateBatteryPercentage(parseFloat(voltage));
-                });
-
-                sgValues.forEach((sg, index) => {
-                    sgs.push(sg);
-                    sgTimestamps.push(timestamps[index]);
-                });
-
-                if (sgs.length > 0) {
-                    latestSG = sgs[sgs.length - 1];
-                    latestTilt = angles[angles.length - 1]; // Assuming Tilt is the angle
-                    latestTemperature = temperatures[temperatures.length - 1];
+                if (sgValues?.length) {
+                    const lastSGEntry = sgValues[sgValues.length - 1].split(', ');
+                    latestSG = calculateSG(lastSGEntry[1], tokenData.formula) + 0.012661934;
+                    latestTilt = parseFloat(lastSGEntry[1]);
                 }
-
-                let color = tokenColors[tokenName] || '#000000';
-
-                datasets.push({
-                    label: `${tokenName} - Angle`,
-                    data: angles.map((angle, index) => ({
-                        x: timestamps[index],
-                        y: angle
-                    })),
-                    borderColor: color,
-                    backgroundColor: color,
-                    pointBackgroundColor: color,
-                    borderWidth: 2,
-                    fill: false,
-                });
-
-                datasets.push({
-                    label: `${tokenName} - Temperature`,
-                    data: temperatures.map((temperature, index) => ({
-                        x: timestamps[index],
-                        y: temperature
-                    })),
-                    borderColor: color,
-                    backgroundColor: color,
-                    pointBackgroundColor: color,
-                    borderWidth: 2,
-                    fill: false,
-                });
-
-                datasets.push({
-                    label: `${tokenName} - Battery Voltage`,
-                    data: batteries.map((voltage, index) => ({
-                        x: timestamps[index],
-                        y: voltage
-                    })),
-                    borderColor: color,
-                    backgroundColor: color,
-                    pointBackgroundColor: color,
-                    borderWidth: 2,
-                    fill: false,
-                });
-
-                datasets.push({
-                    label: `${tokenName} - SG`,
-                    data: sgValues.map((sg, index) => ({
-                        x: sgTimestamps[index],
-                        y: sg
-                    })),
-                    borderColor: color,
-                    backgroundColor: color,
-                    pointBackgroundColor: color,
-                    borderWidth: 2,
-                    fill: false,
-                    borderDash: [5, 5],
-                });
-            }
-
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                tooltipFormat: 'MMM d, yyyy, HH:mm:ss',
-                                unit: 'minute',
-                                displayFormats: {
-                                    minute: 'MMM d, HH:mm',
-                                    hour: 'MMM d, HH:mm',
-                                    day: 'MMM d',
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date & Time',
-                                color: axisColor,
-                            },
-                            ticks: {
-                                color: axisColor,
-                                source: 'data',
-                                autoSkip: true,
-                                maxRotation: 90,
-                                minRotation: 90,
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Values',
-                                color: axisColor,
-                            },
-                            ticks: {
-                                color: axisColor,
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: axisColor,
-                            }
-                        }
-                    },
-                    backgroundColor: bgColor,
+                if (tempValues?.length) {
+                    latestTemperature = parseFloat(tempValues[tempValues.length - 1].split(', ')[1]);
                 }
-            });
-
-            setTimeout(() => {
-                myChart.update();
-            }, 100);
-
-            // Update widgets with latest data
-            updateWidgets(latestSG, latestTilt, latestTemperature, latestBatteryPercentage);
-        }
-
-        async function fetchTokens() {
-            logYellow('fetchTokens() called');
-            const response = await fetch('/token');
-            const tokens = await response.json();
-            logYellow('Fetched tokens:', tokens);
-
-            const tokensList = document.getElementById('tokensList');
-            tokensList.innerHTML = '';
-
-            for (const [name, token] of Object.entries(tokens)) {
-                logYellow(`Adding token to dropdown: ${name}`);
-
-                tokenColors[name] = token.color;
-
-                const tokenItem = document.createElement('div');
-                tokenItem.className = 'token-item';
-                tokenItem.innerHTML =
-                    `<strong style="color: ${tokenColors[name]};">${name}:</strong> ${token.value}
-                    <input type="text" placeholder="Enter custom polynomial" data-name="${name}" class="customPolynomialInput" value="${token.formula || ''}">
-                    <button class="savePolynomialButton" id="savePolynomialButton" data-token-name="${name}">Save</button>
-                    <a href="#" data-name="${name}" class="regenerateToken">Regenerate</a>
-                    <a href="#" data-name="${name}" class="deleteToken">Delete</a>`;
-                tokensList.appendChild(tokenItem);
+                if (batteryValues?.length) {
+                    const lastBatteryEntry = batteryValues[batteryValues.length - 1].split(', ')[1];
+                    latestBattery = calculateBatteryPercentage(parseFloat(lastBatteryEntry));
+                }
             }
 
-            const addTokenLink = document.createElement('a');
-            addTokenLink.href = '#';
-            addTokenLink.id = 'addToken';
-            addTokenLink.textContent = 'Add New Token';
-            tokensList.appendChild(addTokenLink);
+            // Update widget display with latest values
+            updateWidgets(latestSG, latestTilt, latestTemperature, latestBattery);
+            
+}
 
-            document.getElementById('addToken').addEventListener('click', async (event) => {
-                event.preventDefault();
-                await addToken();
-                await fetchTokens();
-            });
 
-            document.querySelectorAll('.regenerateToken').forEach(element => {
-                element.addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    const name = event.target.getAttribute('data-name');
-                    await regenerateToken(name);
-                    await fetchTokens();
-                    await renderChart();
-                });
-            });
+async function fetchTokens() {
+    console.log('Fetching tokens...');
+    const response = await fetch('/token');
+    const tokens = await response.json();
+    console.log('Tokens fetched (snapshot):', JSON.stringify(tokens, null, 2));
 
-            document.getElementById('emailConfigForm').addEventListener('submit', async (event) => {
-                event.preventDefault();
+    const tokensList = document.getElementById('tokensList');
+    tokensList.innerHTML = '';
 
-                const emailConfig = {
-                    recipientEmail: document.getElementById('recipientEmail').value,
-                    gmailUser: document.getElementById('gmailUser').value,
-                    gmailPass: document.getElementById('gmailPass').value,
-                    sgAlert: document.getElementById('sgAlert').checked,
-                    batteryAlert: document.getElementById('batteryAlert').checked,
-                };
+    for (const [name, token] of Object.entries(tokens)) {
+        console.log(`Processing token: ${name}`, token); // Log each token, including offset
 
-                const response = await fetch('/save-email-config', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(emailConfig)
-                });
+        // Use token data directly without omitting fields
+        const tokenData = {
+            ...token, // Spread the token object to ensure all fields are included
+        };
 
-                const result = await response.json();
-                alert(result.status);
-            });
+        console.log('Token data object:', tokenData); // Verify offset is included here
 
-            document.querySelectorAll('.deleteToken').forEach(element => {
-                element.addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    const name = event.target.getAttribute('data-name');
-                    await deleteToken(name);
-                    await fetchTokens();
-                    await renderChart();
-                });
-            });
+        const tokenItem = document.createElement('div');
+        tokenItem.className = 'token-item';
+        tokenItem.innerHTML = `
+            <strong style="color: ${token.color};">${name}:</strong> ${token.value}
+            <input type="text" placeholder="Enter custom polynomial" data-name="${name}" class="customPolynomialInput" value="${token.formula || ''}">
+            <input type="text" placeholder="Enter custom offset" data-name="${name}" class="customOffsetInput" value="${token.offset || 0}">
+            <button class="savePolynomialButton" data-token-name="${name}">Save</button>
+            <a href="#" data-name="${name}" class="regenerateToken">Regenerate</a>
+            <a href="#" data-name="${name}" class="deleteToken">Delete</a>`;
+        tokensList.appendChild(tokenItem);
+    }
 
-            document.querySelectorAll('.savePolynomialButton').forEach(element => {
-                element.addEventListener('click', async (event) => {
-                    const name = event.target.getAttribute('data-token-name');
-                    const input = document.querySelector(`input[data-name="${name}"]`);
-                    const formula = input.value;
-                    await updateTokenFormula(name, formula);
-                    await fetchTokens();
-                    await renderChart();
-                });
-            });
-        }
+    const addTokenLink = document.createElement('a');
+    addTokenLink.href = '#';
+    addTokenLink.id = 'addToken';
+    addTokenLink.textContent = 'Add New Token';
+    tokensList.appendChild(addTokenLink);
 
-        async function updateTokenFormula(name, formula) {
-            const response = await fetch('/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'updateFormula',
-                    name,
-                    formula
-                })
-            });
-            const result = await response.json();
-            if (result.status !== 'ok') {
-                alert('Failed to update formula');
-            }
-        }
+    document.getElementById('addToken').addEventListener('click', async (event) => {
+        event.preventDefault();
+        await addToken();
+        await fetchTokens();
+    });
+
+    document.querySelectorAll('.regenerateToken').forEach(element => {
+        element.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const name = event.target.getAttribute('data-name');
+            await regenerateToken(name);
+            await fetchTokens();
+            await renderCharts();
+        });
+    });
+
+    document.querySelectorAll('.deleteToken').forEach(element => {
+        element.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const name = event.target.getAttribute('data-name');
+            await deleteToken(name);
+            await fetchTokens();
+            await renderCharts();
+        });
+    });
+
+document.querySelectorAll('.savePolynomialButton').forEach((element) => {
+    element.addEventListener('click', async (event) => {
+        const name = event.target.getAttribute('data-token-name');
+        const formulaInput = document.querySelector(`input.customPolynomialInput[data-name="${name}"]`);
+        const offsetInput = document.querySelector(`input.customOffsetInput[data-name="${name}"]`);
+
+        const formula = formulaInput.value;
+        const offset = parseFloat(offsetInput.value) || 0;
+
+        console.log(`Saving token: ${name}, Formula: ${formula}, Offset: ${offset}`);
+
+        await updateTokenFormula(name, formula, offset);
+        await fetchTokens(); // Reload tokens to reflect changes
+    });
+});
+
+}
+
+async function updateTokenFormula(name, formula, offset) {
+    const response = await fetch('/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'updateFormula',
+            name,
+            formula,
+            offset,
+        }),
+    });
+    const result = await response.json();
+    if (result.status !== 'ok') {
+        console.error(`Failed to update token ${name}:`, result.message);
+        alert(`Failed to update token ${name}.`);
+    }
+}
 
         async function regenerateToken(name) {
             const response = await fetch('/token', {
@@ -777,7 +862,7 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
             const result = await response.json();
             alert(`Token for ${name} has been regenerated.`);
             await fetchTokens();
-            await renderChart();
+            await renderCharts();
         }
 
         async function deleteToken(name) {
@@ -794,7 +879,7 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
             const result = await response.json();
             alert(`Token for ${name} has been deleted.`);
             await fetchTokens();
-            await renderChart();
+            await renderCharts();
         }
 
         async function addToken() {
@@ -821,7 +906,7 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
                     alert(`Token for ${name} has been added with color ${color}.`);
 
                     await fetchTokens();
-                    await renderChart();
+                    await renderCharts();
                 }
             }
         }
@@ -840,7 +925,7 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
                 toggleButton.textContent = 'Switch to Light Mode';
             }
 
-            renderChart();
+            renderCharts();
         }
 
         async function clearData() {
@@ -849,7 +934,7 @@ function calculateBatteryPercentage(voltage, factor = 196.83) {
             });
             if (response.ok) {
                 alert('All data has been cleared.');
-                renderChart();
+                renderCharts();
             } else {
                 alert('Failed to clear data.');
             }
@@ -899,51 +984,102 @@ async function restoreData() {
     });
     fileInput.click();
 }
-        function exportDashboard() {
-            // Get the current mode
-            const isDarkMode = document.body.classList.contains('dark-mode');
+function exportDashboard() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
 
-            // Temporarily set the chart's background and text colors based on the mode
-            const chartElement = document.getElementById('dataChart').getContext('2d');
-            const originalBackgroundColor = chartElement.canvas.style.backgroundColor;
-            const originalColor = chartElement.canvas.style.color;
+    // Create a wrapper for exporting
+    const wrapper = document.createElement('div');
+    wrapper.id = 'exportWrapper';
+    wrapper.style.position = 'absolute';
+    wrapper.style.top = '0';
+    wrapper.style.left = '0';
+    wrapper.style.zIndex = '-1';
+    wrapper.style.backgroundColor = isDarkMode ? '#333' : '#fff';
+    wrapper.style.margin = '0';
+    wrapper.style.padding = '0';
+    wrapper.style.display = 'block';
 
-            // Set the appropriate colors based on the current mode
-            if (isDarkMode) {
-                chartElement.canvas.style.backgroundColor = '#333'; // Dark mode background
-                chartElement.canvas.style.color = '#f4f4f4';        // Dark mode text color
-            } else {
-                chartElement.canvas.style.backgroundColor = '#fff'; // Light mode background
-                chartElement.canvas.style.color = '#333';           // Light mode text color
-            }
+    // Clone the gridstack section
+    const gridstackOriginal = document.querySelector('.grid-stack');
+    const gridstackClone = gridstackOriginal.cloneNode(true);
+    gridstackClone.style.margin = '0';
+    gridstackClone.style.padding = '0';
+    gridstackClone.style.height = `${gridstackOriginal.offsetHeight}px`; // Force set height
+    gridstackClone.style.width = `${gridstackOriginal.offsetWidth}px`; // Force set width
+    wrapper.appendChild(gridstackClone);
 
-            // Add a small delay to ensure everything is rendered with the correct mode
-            setTimeout(() => {
-                html2canvas(document.getElementById('dashboardContainer')).then(canvas => {
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = 'dashboard.png';
-                    link.click();
+    // Debugging: Check gridstackClone height
+    console.log("Gridstack height (forced):", gridstackClone.style.height);
 
-                    // Revert to original colors after exporting
-                    chartElement.canvas.style.backgroundColor = originalBackgroundColor;
-                    chartElement.canvas.style.color = originalColor;
-                });
-            }, 500); // Delay of 500ms to ensure rendering is complete
+    // Append the original chart canvases directly to the wrapper
+    const chartContainer = document.getElementById('chartContainer');
+    const originalCanvases = [
+        document.getElementById('sgChart'),
+        document.getElementById('tiltChart'),
+        document.getElementById('temperatureChart'),
+        document.getElementById('batteryChart')
+    ];
+    originalCanvases.forEach((canvas) => {
+        if (canvas) {
+            wrapper.appendChild(canvas); // Temporarily append original canvas
         }
+    });
+
+    // Append wrapper to the DOM
+    document.body.appendChild(wrapper);
+
+    // Debugging: Ensure all elements are in the wrapper
+    console.log("Wrapper content:", wrapper.innerHTML);
+
+    // Use html2canvas to capture the entire wrapper
+    html2canvas(wrapper, {
+        scale: 3, // High resolution
+        useCORS: true,
+        backgroundColor: isDarkMode ? '#333' : '#fff',
+        windowWidth: wrapper.offsetWidth,
+        windowHeight: wrapper.offsetHeight,
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = 'dashboard.png';
+        link.click();
+
+        // Revert changes: Move original canvases back to their original container
+        originalCanvases.forEach((canvas) => {
+            if (canvas) {
+                chartContainer.appendChild(canvas); // Move canvas back to chartContainer
+            }
+        });
+
+        // Remove wrapper after export
+        document.body.removeChild(wrapper);
+    }).catch(error => {
+        console.error("Error exporting the dashboard:", error);
+        alert("Failed to export the dashboard. Please try again.");
+    });
+}
 
         document.addEventListener('DOMContentLoaded', async () => {
+
+            // Check if GridStack is available before initializing
+            if (typeof GridStack !== 'undefined') {
+                const grid = GridStack.init();
+                console.log("GridStack initialized");
+            } else {
+                console.error("GridStack is not defined");
+            }
+
             logYellow('DOMContentLoaded event fired, calling fetchTokens');
             await fetchTokens();
             await fetchEmailConfig();
 
             setTimeout(async () => {
-                await renderChart();
+                await renderCharts();
             }, 100);
 
             document.getElementById('modeToggle').addEventListener('click', async () => {
                 toggleMode();
-                await renderChart();
+                await renderCharts();
             });
 
             document.getElementById('clearDataButton').addEventListener('click', clearData);
@@ -958,7 +1094,7 @@ async function restoreData() {
             toggleButton.textContent = 'Switch to Light Mode';
 
             setInterval(async () => {
-                await renderChart();
+                await renderCharts();
             }, 60000);
         });
     </script>

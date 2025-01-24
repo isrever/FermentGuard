@@ -1,15 +1,15 @@
 {
-  "name": "fermentguard-0.8.0-alpha",
-  "version": "0.8.0-alpha",
+  "name": "fermentguard-0.9.0-alpha",
+  "version": "0.9.0-alpha",
   "description": "",
   "main": "FermentGuard.js",
   "scripts": {
+    "start": "node FermentGuard.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "isrever",
   "license": "ISC",
   "dependencies": {
-    "asciichart": "^1.5.25",
     "crypto": "^1.0.1",
     "is-admin": "^4.0.0",
     "nodemailer": "^6.9.14",

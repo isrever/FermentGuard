@@ -8,8 +8,8 @@ npm (v6+)
 
 Installation
 1. Clone the repository:
-git clone https://github.com/yourusername/fermentguard.git
-cd fermentguard
+git clone https://github.com/isrever/FermentGuard.git
+cd fermentguard 
 
 2. Install dependencies:
 npm install
@@ -19,5 +19,4 @@ npm start
 
 4. Access the dashboard at http://localhost:8080
 
-License:
 This project is licensed under the MIT License.

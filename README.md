@@ -1,4 +1,4 @@
-FermentGuard 0.9.0-alpha Build: 2701250038
+FermentGuard 0.9.1-alpha Build: 2701250038
 FermentGuard is a monitoring and management system designed for fermentation projects, providing real-time insights. The project includes a modular architecture for data processing, email notifications, and a dashboard interface.
 
 Getting Started:

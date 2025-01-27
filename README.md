@@ -15,8 +15,11 @@ cd fermentguard
 npm install
 
 3. Start the server:
-npm start
+npm run start
 
 4. Access the dashboard at http://localhost:8080
 
+5. additional commands:
+npm run github (displays the github link)
+npm run test (runs tests / no tests are supplied as of this moment)
 This project is licensed under the MIT License.

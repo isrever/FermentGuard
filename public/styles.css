@@ -1,0 +1,206 @@
+        /* Basic styles for the body and container elements */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition for theme changes */
+        }
+
+        /* Style for the chart container */
+        #chartContainer {
+            width: 90%; /* Occupies 90% of the page width */
+            max-width: 1200px; /* Maximum width set to 1200px */
+            height: 600px; /* Fixed height of 600px */
+            margin: 0 auto; /* Centers the container */
+        }
+
+        /* Ensures the canvas for Chart.js adapts to the container size */
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Style for the buttons container */
+        #buttonsContainer {
+            margin-top: 20px; /* Adds space above the container */
+        }
+
+        /* Common styles for all buttons */
+        #modeToggle,
+        #exportDashboardButton,
+        #clearDataButton,
+        #backupDataButton,
+        #restoreDataButton,
+        #savePolynomialButton,
+        #SaveEmailConfig,
+        .dropbtn {
+            padding: 10px 20px; /* Button padding */
+            border: none; /* Removes border */
+            cursor: pointer; /* Changes cursor to pointer on hover */
+            border-radius: 5px; /* Rounded corners */
+            background-color: #007bff; /* Blue background */
+            color: white; /* White text */
+            font-size: 16px; /* Font size */
+            margin-right: 10px; /* Space between buttons */
+        }
+        .savePolynomialButton {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #007bff; /* Light blue background */
+    color: white; /* White text */
+    font-size: 16px;
+    margin-right: 10px;
+    transition: background-color 0.3s; /* Smooth transition for the hover effect */
+}
+.savePolynomialButton:hover {
+    background-color: #0056b3; /* Darker blue when hovered */
+}
+        /* Light mode styles */
+        body.light-mode {
+            background-color: #f4f4f4; /* Light gray background */
+            color: #333; /* Dark text */
+        }
+
+        /* Dropdown content in light mode */
+        body.light-mode .dropdown-content {
+            background-color: #f1f1f1; /* Light gray background */
+            color: black; /* Black text */
+            border: 1px solid #ccc; /* Light gray border */
+        }
+
+        /* Links in dropdowns in light mode */
+        body.light-mode .dropdown-content a {
+            color: black; /* Black text */
+        }
+
+        /* Hover effect for links in dropdowns in light mode */
+        body.light-mode .dropdown-content a:hover {
+            background-color: #ddd; /* Light gray background on hover */
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #2c2c2c; /* Dark background */
+            color: #f4f4f4; /* Light text */
+        }
+
+        /* Dropdown content in dark mode */
+        body.dark-mode .dropdown-content {
+            background-color: #444; /* Dark gray background */
+            color: white; /* White text */
+            border: 1px solid #555; /* Darker gray border */
+        }
+
+        /* Links in dropdowns in dark mode */
+        body.dark-mode .dropdown-content a {
+            color: white; /* White text */
+        }
+
+        /* Hover effect for links in dropdowns in dark mode */
+        body.dark-mode .dropdown-content a:hover {
+            background-color: #555; /* Dark gray background on hover */
+        }
+
+        /* Styles for the dropdown menus */
+        .dropdown {
+            position: relative; /* Positioned relative to its container */
+            display: inline-block; /* Displayed inline with other elements */
+            margin-top: 10px; /* Space above the dropdown */
+        }
+
+        /* Hidden dropdown content by default */
+        .dropdown-content {
+            display: none; /* Hidden by default */
+            position: absolute; /* Positioned absolutely within the dropdown */
+            min-width: 160px; /* Minimum width */
+            max-height: 300px; /* Maximum height with scroll */
+            overflow-y: auto; /* Scrolls vertically if content overflows */
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2); /* Shadow effect */
+            z-index: 1; /* Stays on top of other content */
+            border-radius: 5px; /* Rounded corners */
+        }
+
+        /* Style for links inside dropdowns */
+        .dropdown-content a {
+            padding: 12px 16px; /* Padding inside links */
+            text-decoration: none; /* No underline */
+            display: block; /* Block display for links */
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition on hover */
+        }
+
+        /* Show dropdown content on hover */
+        .dropdown:hover .dropdown-content {
+            display: block; /* Displays the dropdown content */
+        }
+
+        /* Change background color of dropdown button on hover */
+        .dropdown:hover .dropbtn {
+            background-color: #0056b3; /* Darker blue */
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 15px; /* Space below each form group */
+        }
+
+        label {
+            display: block; /* Each label is a block element */
+            margin-bottom: 5px; /* Space below the label */
+            font-weight: bold; /* Bold font for labels */
+        }
+
+        /* Text input fields and password fields */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%; /* Full width */
+            padding: 8px; /* Padding inside inputs */
+            margin-bottom: 10px; /* Space below inputs */
+            border-radius: 5px; /* Rounded corners */
+            border: 1px solid #ccc; /* Light gray border */
+        }
+
+        /* Checkbox input styles */
+        input[type="checkbox"] {
+            margin-right: 10px; /* Space between checkbox and label */
+        }
+
+        /* GridStack styles */
+        .grid-stack {
+            background: #fafafa; /* Light gray background for the grid */
+            margin-top: 20px; /* Space above the grid */
+        }
+
+        /* Styles for each grid item */
+        .grid-stack-item-content {
+            background-color: #007bff; /* Blue background */
+            color: white; /* White text */
+            display: flex; /* Flexbox layout for centering content */
+            align-items: center; /* Center items vertically */
+            justify-content: center; /* Center items horizontally */
+            border-radius: 10px; /* Rounded corners */
+            text-align: center; /* Centered text */
+            font-size: 20px; /* Font size */
+            padding: 10px; /* Padding inside each grid item */
+        }
+
+        /* Title for widgets inside the grid */
+        .widget-title {
+            margin-bottom: 10px; /* Space below the title */
+            font-weight: bold; /* Bold font for titles */
+        }
+
+        /* Content style for widgets inside the grid */
+        .widget-content {
+            font-size: 24px; /* Larger font size */
+        }
+
+        /* Dashboard container styles */
+        #dashboardContainer {
+            width: 90%; /* Occupies 90% of the page width */
+            max-width: 1200px; /* Maximum width set to 1200px */
+            margin: 0 auto; /* Centers the container */
+        }

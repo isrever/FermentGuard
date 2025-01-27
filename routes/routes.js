@@ -23,7 +23,8 @@ const {
     logYellow
 } = require('../utils/logger');
 const config = require('../config/config');
-
+const path = require('path');
+const fs = require('fs');
 /**
  * Handles HTTP requests for retrieving tokens.
  *
@@ -98,6 +99,53 @@ const requestHandler = (req, res) => {
         createBackup(res);
     } else if (req.method === 'POST' && req.url === '/restore') {
         restoreBackup(req, res);
+    } else if (req.method === 'GET' && req.url === '/public/script.js') {
+        const filePath = path.join(__dirname, '../public/script.js'); // Adjust the path to your script.js file
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                console.error('Error reading script.js:', err);
+                res.writeHead(500, {
+                    'Content-Type': 'text/plain'
+                });
+                res.end('Internal Server Error');
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'application/javascript'
+            });
+            res.end(data); // Send the contents of script.js back to the client
+        });
+    } else if (req.method === 'GET' && req.url === '/public/styles.css') {
+        const filePath = path.join(__dirname, '../public/styles.css'); // Adjust the path to your styles.css file
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                console.error('Error reading styles.css:', err);
+                res.writeHead(500, {
+                    'Content-Type': 'text/plain'
+                });
+                res.end('Internal Server Error');
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'text/css' // Set the correct MIME type for CSS
+            });
+            res.end(data); // Send the contents of styles.css back to the client
+        });
+    } else if (req.method === 'GET' && req.url === '/favicon.ico') {
+        const filePath = path.join(__dirname, '../public/favicon.ico');
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                res.writeHead(404, {
+                    'Content-Type': 'text/plain'
+                });
+                res.end('Favicon not found');
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'image/x-icon'
+            });
+            res.end(data);
+        });
     } else {
         res.writeHead(404, {
             'Content-Type': 'text/plain'
